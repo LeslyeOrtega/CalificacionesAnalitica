@@ -211,18 +211,61 @@ rel="stylesheet" />
     return val;
   }
 
-  // Limpiar errores al escribir
-  container.addEventListener('input', (e) => {
-    const t = e.target;
-    if (t.matches('.math, .physics, .chemistry')) {
-      // Validación suave en tiempo real
-      const val = Number(t.value);
-      if (t.value.trim() === '') return; // espera a que se complete
-      if (Number.isFinite(val) && val >= 0 && val <= 10) {
-        clearError(t);
-      }
-    }
-  });
+// Validación en tiempo real + límites duros 0–10 + normalización al salir del campo
+container.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!t.matches('.math, .physics, .chemistry')) return;
+
+  // Permitimos que el usuario empiece a escribir sin molestar
+  const raw = t.value.trim();
+  if (raw === '') {
+    // No marcamos error todavía; se validará al calcular o al salir del campo
+    return;
+  }
+
+
+  let val = Number(raw.replace(',', '.'));
+
+  if (!Number.isFinite(val)) {
+    // Si lo escrito no es número (texto)
+    setError(t, 'Ingresa un número válido.');
+    return;
+  }
+
+  // Recorte duro al rango 0–10
+  if (val > 10) val = 10;
+  if (val < 0)  val = 0;
+
+
+  t.value = String(val);
+
+
+  clearError(t);
+});
+
+
+container.addEventListener('blur', (e) => {
+  const t = e.target;
+  if (!t.matches('.math, .physics, .chemistry')) return;
+
+  const raw = t.value.trim();
+  if (raw === '') {
+    setError(t, 'Campo requerido (0 a 10).');
+    return;
+  }
+
+  let val = Number(raw.replace(',', '.'));
+  if (!Number.isFinite(val)) {
+    setError(t, 'Ingresa un número válido.');
+    return;
+  }
+
+  // Garantiza rango 0–10 y deja 1 decimal
+  if (val > 10) val = 10;
+  if (val < 0)  val = 0;
+  t.value = val.toFixed(1);
+  clearError(t);
+}, true);
 
   function addStudentBlock(name, group, m, p, c) {
     const div = document.createElement('div');
