@@ -1,369 +1,798 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Registro de Estudiantes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
- :root {
-  --primary: #4e73df;
-  --secondary: #1cc88a;
-  --danger: #e74a3b;
-  --bg: #f8f9fc;
-  --surface: #ffffff;
-  --text: #5a5c69;
-  --radius: 8px;
-  --transition: 0.3s;
-  --spacing: 1rem;
- }
- * { box-sizing: border-box; margin: 0; padding: 0; }
- body {
-  font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-  line-height: 1.5; display: flex; flex-direction: column; min-height: 100vh;
- }
- header { background: var(--primary); color: #fff; padding: var(--spacing); text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
- header h1 { font-size: 2rem; font-weight: 700; }
- main {
-  flex: 1; max-width: 960px; margin: var(--spacing) auto; padding: var(--spacing);
-  background: var(--surface); border-radius: var(--radius); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
- }
- .accordion { margin-bottom: var(--spacing); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow var(--transition); }
- .accordion:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
- .accordion summary {
-  display: flex; justify-content: space-between; align-items: center; padding: var(--spacing);
-  font-weight: 600; cursor: pointer; background: var(--primary); color: #fff; list-style: none;
- }
- .accordion summary::-webkit-details-marker { display: none; }
- .accordion summary::after { content: '▾'; transition: transform var(--transition); }
- .accordion[open] summary::after { transform: rotate(180deg); }
- .accordion .content { padding: var(--spacing); background: var(--bg); }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Estudiantes — Versión Premium</title>
 
- .student, .result-item {
-  display: flex; align-items: center; justify-content: space-between; padding: var(--spacing);
-  background: var(--surface); border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  margin-bottom: 0.75rem; transition: transform var(--transition);
- }
- .student:hover, .result-item:hover { transform: translateY(-2px); }
+  <!-- Fuentes (capa visual más amable) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
- .fields {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.75rem; margin-top: 0.5rem;
- }
- .fields input {
-  width: 100%; padding: 0.5rem; border: 1px solid #d1d3e2; border-radius: var(--radius);
-  transition: border-color var(--transition), box-shadow var(--transition);
- }
- .fields input:focus { border-color: var(--primary); outline: none; }
+  <!-- Chart.js para la gráfica -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
- /* === Estilos de validación === */
- .fields input.invalid {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(231,74,59,0.15);
- }
- .error-hint {
-  display: block;
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
- }
+  <style>
+    /* =========================================================
+       Estilos base: paleta, sombras suaves y layout centrado
+       ========================================================= */
+    :root {
+      --primary: #4e73df;   /* color principal (se puede cambiar en Premium) */
+      --secondary: #1cc88a; /* color secundario */
+      --danger: #e74a3b;    /* rojo para errores/alertas */
+      --bg: #f8f9fc;        /* fondo global */
+      --surface: #ffffff;   /* tarjetas/paneles */
+      --text: #5a5c69;      /* texto base */
+      --radius: 8px;        /* redondeo de bordes */
+      --transition: 0.3s;   /* animación suave */
+      --spacing: 1rem;      /* espaciado estándar */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: var(--spacing);
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    main {
+      flex: 1;
+      max-width: 960px;
+      margin: var(--spacing) auto;
+      padding: var(--spacing);
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
 
- button {
-  font-family: inherit; font-weight: 600; font-size: 1rem; padding: 0.6rem 1.2rem;
-  border: none; border-radius: var(--radius); cursor: pointer; transition: background var(--transition), transform var(--transition);
- }
- .btn-primary { background: var(--primary); color: #fff; }
- .btn-primary:hover { filter: brightness(0.9); }
- .btn-secondary { background: var(--secondary); color: #fff; }
- .btn-secondary:hover { filter: brightness(0.9); }
- .btn-delete { background: var(--danger); color: #fff; font-size: 0.9rem; padding: 0.4rem 0.8rem; }
- .btn-delete:hover { filter: brightness(0.9); }
- .btn-add { margin-top: var(--spacing); }
+    /* Acordeones “Alumnos capturados” y “Resumen” */
+    .accordion {
+      margin-bottom: var(--spacing);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: box-shadow var(--transition);
+    }
+    .accordion:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .accordion summary {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--spacing);
+      font-weight: 600; cursor: pointer;
+      background: var(--primary); color: #fff;
+      list-style: none;
+    }
+    .accordion summary::-webkit-details-marker { display: none; }
+    .accordion summary::after { content: '▾'; transition: transform var(--transition); }
+    .accordion[open] summary::after { transform: rotate(180deg); }
+    .accordion .content { padding: var(--spacing); background: var(--bg); }
 
- #group-summaries {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing);
- }
- .summary-group > summary { background: var(--secondary); color: #fff; padding: var(--spacing); font-size: 1.1rem; }
- #failure-title, #failure-table, #chart-container { display: none; }
+    /* Tarjetas de alumno y resultados */
+    .student, .result-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--spacing);
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 0.75rem;
+      transition: transform var(--transition);
+    }
+    .student:hover, .result-item:hover { transform: translateY(-2px); }
 
- #failure-table {
-  width: 100%; border-collapse: collapse; margin-top: var(--spacing);
- }
- #failure-table th, #failure-table td {
-  padding: 0.75rem 1rem; text-align: center; border-bottom: 1px solid #e3e6f0;
- }
- #failure-table tr:nth-child(even) { background: #f8f9fc; }
+    /* Campos de notas: grid responsivo */
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .fields input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d3e2;
+      border-radius: var(--radius);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .fields input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
 
- #chart-container { margin-top: var(--spacing); text-align: center; }
- canvas { max-width: 100%; height: auto; }
-</style>
+    /* Botones base */
+    button {
+      font-family: inherit; font-weight: 600; font-size: 1rem;
+      padding: 0.6rem 1.2rem; border: none; border-radius: var(--radius);
+      cursor: pointer; transition: background var(--transition), transform var(--transition);
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { filter: brightness(0.9); }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-secondary:hover { filter: brightness(0.9); }
+    .btn-delete { background: var(--danger); color: #fff; font-size: 0.9rem; padding: 0.4rem 0.8rem; }
+    .btn-delete:hover { filter: brightness(0.9); }
+    .btn-add { margin-top: var(--spacing); }
+
+    /* Resumen por grupo */
+    #group-summaries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing);
+    }
+    .summary-group > summary {
+      background: var(--secondary);
+      color: #fff;
+      padding: var(--spacing);
+      font-size: 1.1rem;
+    }
+
+    /* Tabla y gráfica inicialmente ocultas hasta que se calcule */
+    #failure-title, #failure-table, #chart-container { display: none; }
+    #failure-table {
+      width: 100%; border-collapse: collapse; margin-top: var(--spacing);
+    }
+    #failure-table th, #failure-table td {
+      padding: 0.75rem 1rem; text-align: center; border-bottom: 1px solid #e3e6f0;
+    }
+    #failure-table tr:nth-child(even) { background: #f8f9fc; }
+    #chart-container { margin-top: var(--spacing); text-align: center; }
+    canvas { max-width: 100%; height: auto; }
+
+    /* =========================================================
+       Validación visual: inputs inválidos y pistas de error
+       ========================================================= */
+    .fields input.invalid {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(231,74,59,0.15);
+    }
+    .error-hint {
+      display: block;
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    /* =========================================================
+       UI PREMIUM: tarjetas, modal y conmutador Pro
+       ========================================================= */
+    .premium-section {
+      margin-top: var(--spacing);
+      padding: var(--spacing);
+      background: var(--bg);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .premium-header { display:flex; align-items:center; gap:.75rem; margin-bottom: 1rem; }
+    .badge-premium {
+      background: linear-gradient(90deg,#f6d365,#fda085);
+      color:#2d2a26; font-weight:700; padding:.25rem .6rem; border-radius:999px;
+      font-size:.85rem; letter-spacing:.3px;
+      box-shadow: 0 2px 6px rgba(253,160,133,.35);
+    }
+    .pro-toggle { margin-left:auto; display:flex; align-items:center; gap:.5rem; font-size:.95rem; color:#444; }
+    .switch { position:relative; display:inline-block; width:44px; height:24px; }
+    .switch input { display:none; }
+    .slider {
+      position:absolute; cursor:pointer; inset:0; background:#d1d3e2; transition:.2s; border-radius:999px;
+    }
+    .slider:before {
+      content:""; position:absolute; height:18px; width:18px; left:3px; top:3px; background:#fff; transition:.2s; border-radius:999px;
+      box-shadow:0 1px 3px rgba(0,0,0,.2);
+    }
+    .switch input:checked + .slider { background: var(--secondary);}
+    .switch input:checked + .slider:before { transform: translateX(20px); }
+
+    .premium-grid {
+      display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+      gap: var(--spacing);
+    }
+    .p-card {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 1rem; position: relative;
+    }
+    .p-card h3 { font-size: 1.05rem; margin-bottom: .35rem;}
+    .p-card p { font-size: .95rem; opacity:.85; margin-bottom:.75rem;}
+    .p-actions { display:flex; gap:.5rem; flex-wrap:wrap;}
+
+    .locked::after{
+      content:""; position:absolute; inset:0; background: rgba(255,255,255,.65);
+      border-radius: var(--radius); backdrop-filter: blur(2px);
+    }
+    .lock-badge{
+      position:absolute; top:10px; right:10px; background:#ffe08a; color:#6b5000; border-radius:999px;
+      font-size:.8rem; padding:.15rem .5rem; display:flex; align-items:center; gap:.35rem; z-index:2;
+      box-shadow:0 1px 4px rgba(0,0,0,.12);
+    }
+    .lock-badge svg{ width:14px; height:14px; }
+
+    .color-row{ display:flex; align-items:center; gap:.5rem; margin:.5rem 0; }
+    .color-dot{
+      width:22px; height:22px; border-radius:999px; border:2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+      cursor:pointer;
+    }
+
+    .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:999; }
+    .modal.show{ display:flex; }
+    .modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.5); }
+    .modal-card{
+      position:relative; background:#fff; border-radius:16px; padding:1.25rem 1.25rem;
+      width:min(680px,92vw); box-shadow:0 8px 30px rgba(0,0,0,.25);
+    }
+    .upgrade-hero{ display:flex; gap:1rem; align-items:center; margin-bottom:.75rem; }
+    .upgrade-hero h2{ margin:0; font-size:1.4rem; }
+    .hero-chip{
+      font-weight:700; color:#2d2a26; background:linear-gradient(90deg,#f6d365,#fda085);
+      padding:.2rem .6rem; border-radius:999px; font-size:.85rem; margin-left:.5rem;
+    }
+    .hero-list p{ margin:.25rem 0; }
+    .modal-actions{ display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem; }
+    .btn-ghost{ background:#f3f4f6; color:#111; border:1px solid #e5e7eb; }
+  </style>
 </head>
 <body>
-<header>
- <h1>Registro de Estudiantes</h1>
-</header>
-<main>
- <details class="accordion" id="students-accordion" open>
-  <summary>Alumnos capturados (<span id="student-count"></span>)</summary>
-  <div class="content">
-   <div id="students-container"></div>
-   <button type="button" class="btn-secondary btn-add" id="add-student">Agregar alumno</button>
-  </div>
- </details>
+  <header>
+    <h1>Registro de Estudiantes</h1>
+  </header>
 
- <details class="accordion" id="summary-accordion" open>
-  <summary>Resumen</summary>
-  <div class="content" id="group-summaries">
-   <details class="summary-group" open>
-    <summary>Grupo A</summary>
-    <div id="group-summary-A"></div>
-   </details>
-   <details class="summary-group" open>
-    <summary>Grupo B</summary>
-    <div id="group-summary-B"></div>
-   </details>
-   <details class="summary-group" open>
-    <summary>Grupo C</summary>
-    <div id="group-summary-C"></div>
-   </details>
-  </div>
- </details>
+  <main>
+    <!-- ==============================================
+         Sección de alumnos: tarjetas editables + botón agregar
+         ============================================== -->
+    <details class="accordion" id="students-accordion" open>
+      <summary>Alumnos capturados (<span id="student-count"></span>)</summary>
+      <div class="content">
+        <div id="students-container"></div>
+        <button type="button" class="btn-secondary btn-add" id="add-student">Agregar alumno</button>
+      </div>
+    </details>
 
- <div style="text-align: center; margin: var(--spacing) 0;">
-  <button id="calculate-btn" class="btn-primary">Calcular y Graficar</button>
- </div>
+    <!-- ==============================================
+         Resumen: resultados por grupo A/B/C
+         ============================================== -->
+    <details class="accordion" id="summary-accordion" open>
+      <summary>Resumen</summary>
+      <div class="content" id="group-summaries">
+        <details class="summary-group" open>
+          <summary>Grupo A</summary>
+          <div id="group-summary-A"></div>
+        </details>
+        <details class="summary-group" open>
+          <summary>Grupo B</summary>
+          <div id="group-summary-B"></div>
+        </details>
+        <details class="summary-group" open>
+          <summary>Grupo C</summary>
+          <div id="group-summary-C"></div>
+        </details>
+      </div>
+    </details>
 
- <h2 id="failure-title">Índice de Reprobación</h2>
- <table id="failure-table">
-  <thead>
-   <tr><th>Grupo</th><th>Total</th><th>Reprobados</th><th>% Reprobación</th></tr>
-  </thead>
-  <tbody></tbody>
- </table>
+    <!-- Botón principal para calcular y graficar -->
+    <div style="text-align: center; margin: var(--spacing) 0;">
+      <button id="calculate-btn" class="btn-primary">Calcular y Graficar</button>
+    </div>
 
- <div id="chart-container"><canvas id="groupChart"></canvas></div>
-</main>
+    <!-- Tabla + gráfica del índice de reprobación -->
+    <h2 id="failure-title">Índice de Reprobación</h2>
+    <table id="failure-table">
+      <thead>
+        <tr>
+          <th>Grupo</th><th>Total</th><th>Reprobados</th><th>% Reprobación</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div id="chart-container"><canvas id="groupChart"></canvas></div>
 
-<script>
-(function() {
-  const container = document.getElementById('students-container');
-  const countLabel = document.getElementById('student-count');
-  const failureTitle = document.getElementById('failure-title');
-  const table = document.getElementById('failure-table');
-  const tableBody = table.querySelector('tbody');
-  const chartContainer = document.getElementById('chart-container');
-  const calculateBtn = document.getElementById('calculate-btn');
-  const ctx = document.getElementById('groupChart').getContext('2d');
-  let chart;
-
-  function randNote() { return (Math.random() * 5 + 5).toFixed(1); }
-  function updateCount() { countLabel.textContent = container.children.length; }
-
-  // ======== Utilidades de validación ========
-  function setError(input, message) {
-    input.classList.add('invalid');
-    input.setAttribute('aria-invalid', 'true');
-    input.title = message;
-
-    // Si no existe un hint, lo creamos justo después del input
-    let hint = input.parentElement.querySelector('.error-hint');
-    if (!hint || hint.previousElementSibling !== input) {
-      hint = document.createElement('small');
-      hint.className = 'error-hint';
-      input.insertAdjacentElement('afterend', hint);
-    }
-    hint.textContent = message;
-  }
-
-  function clearError(input) {
-    input.classList.remove('invalid');
-    input.removeAttribute('aria-invalid');
-    input.title = '';
-    const hint = input.parentElement.querySelector('.error-hint');
-    if (hint && hint.previousElementSibling === input) {
-      hint.remove();
-    }
-  }
-
-  function validateNumberInput(input) {
-    const raw = input.value.trim();
-    if (raw === '') {
-      setError(input, 'Campo requerido (0 a 10).');
-      return null;
-    }
-    const val = Number(raw);
-    if (!Number.isFinite(val)) {
-      setError(input, 'Ingresa un número válido.');
-      return null;
-    }
-    if (val < 0 || val > 10) {
-      setError(input, 'El valor debe estar entre 0 y 10.');
-      return null;
-    }
-    // Normalizamos a 1 decimal
-    input.value = val.toFixed(1);
-    clearError(input);
-    return val;
-  }
-
-// Validación en tiempo real + límites duros 0–10 + normalización al salir del campo
-container.addEventListener('input', (e) => {
-  const t = e.target;
-  if (!t.matches('.math, .physics, .chemistry')) return;
-
-  // Permitimos que el usuario empiece a escribir sin molestar
-  const raw = t.value.trim();
-  if (raw === '') {
-    // No marcamos error todavía; se validará al calcular o al salir del campo
-    return;
-  }
-
-
-  let val = Number(raw.replace(',', '.'));
-
-  if (!Number.isFinite(val)) {
-    // Si lo escrito no es número (texto)
-    setError(t, 'Ingresa un número válido.');
-    return;
-  }
-
-  // Recorte duro al rango 0–10
-  if (val > 10) val = 10;
-  if (val < 0)  val = 0;
-
-
-  t.value = String(val);
-
-
-  clearError(t);
-});
-
-
-container.addEventListener('blur', (e) => {
-  const t = e.target;
-  if (!t.matches('.math, .physics, .chemistry')) return;
-
-  const raw = t.value.trim();
-  if (raw === '') {
-    setError(t, 'Campo requerido (0 a 10).');
-    return;
-  }
-
-  let val = Number(raw.replace(',', '.'));
-  if (!Number.isFinite(val)) {
-    setError(t, 'Ingresa un número válido.');
-    return;
-  }
-
-  // Garantiza rango 0–10 y deja 1 decimal
-  if (val > 10) val = 10;
-  if (val < 0)  val = 0;
-  t.value = val.toFixed(1);
-  clearError(t);
-}, true);
-
-  function addStudentBlock(name, group, m, p, c) {
-    const div = document.createElement('div');
-    div.className = 'student';
-    div.innerHTML = `
-      <div>
-        <strong>${name} (Grupo ${group})</strong>
-        <div class="fields">
-          <input type="number" class="math" value="${m}" min="0" max="10" step="0.1" placeholder="Matemáticas (0–10)">
-          <input type="number" class="physics" value="${p}" min="0" max="10" step="0.1" placeholder="Física (0–10)">
-          <input type="number" class="chemistry" value="${c}" min="0" max="10" step="0.1" placeholder="Química (0–10)">
+    <!-- ==============================================
+         Sección PREMIUM: funciones avanzadas
+         ============================================== -->
+    <section class="premium-section" id="premium">
+      <div class="premium-header">
+        <span class="badge-premium">PREMIUM</span>
+        <h2 style="margin:0;">Funciones avanzadas</h2>
+        <div class="pro-toggle" title="Simular plan Pro">
+          <span>Pro</span>
+          <label class="switch">
+            <input type="checkbox" id="proSwitch">
+            <span class="slider"></span>
+          </label>
         </div>
       </div>
-      <button type="button" class="btn-delete">Eliminar</button>
-    `;
-    div.querySelector('.btn-delete').addEventListener('click', () => { div.remove(); updateCount(); });
 
-    container.appendChild(div);
-    updateCount();
-  }
+      <div class="premium-grid">
+        <!-- Exportar -->
+        <div class="p-card" data-lock="true" id="card-export">
+          <div class="lock-badge" aria-hidden="true">
+            <!-- insignia de “Solo Pro” -->
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
+            Solo Pro
+          </div>
+          <h3>Exportar resultados</h3>
+          <p>Descarga la tabla y promedios para informes en CSV o un archivo de texto listo para imprimir/PDF.</p>
+          <div class="p-actions">
+            <button class="btn-secondary" id="btnExportCSV">Exportar CSV</button>
+            <button class="btn-primary" id="btnExportPDF">Exportar “PDF”</button>
+          </div>
+        </div>
 
-  document.getElementById('add-student').addEventListener('click', () => {
-    addStudentBlock('Alumno Nuevo', 'A', '7.0', '7.0', '7.0');
-  });
+        <!-- Guardar/Cargar -->
+        <div class="p-card" data-lock="true" id="card-templates">
+          <div class="lock-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
+            Solo Pro
+          </div>
+          <h3>Guardar grupos</h3>
+          <p>Conserva plantillas de alumnos para reutilizarlas en nuevas sesiones.</p>
+          <div class="p-actions">
+            <button class="btn-secondary" id="btnSaveTemplate">Guardar</button>
+            <button class="btn-primary" id="btnLoadTemplate">Cargar</button>
+          </div>
+        </div>
 
-  // ======== Cálculo con validación previa ========
-  calculateBtn.addEventListener('click', () => {
-    // Reiniciar resúmenes
-    ['A','B','C'].forEach(g => { document.getElementById(`group-summary-${g}`).innerHTML = ''; });
-    tableBody.innerHTML = '';
+        <!-- Compartir -->
+        <div class="p-card" data-lock="true" id="card-share">
+          <div class="lock-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
+            Solo Pro
+          </div>
+          <h3>Compartir enlace</h3>
+          <p>Genera un link con el estado actual para revisar resultados.</p>
+          <div class="p-actions">
+            <button class="btn-primary" id="btnShare">Generar enlace</button>
+          </div>
+        </div>
 
-    // Validar todos los inputs antes de calcular
-    const inputs = container.querySelectorAll('.math, .physics, .chemistry');
-    let firstInvalid = null;
-    inputs.forEach(inp => {
-      const ok = validateNumberInput(inp);
-      if (ok === null && !firstInvalid) firstInvalid = inp;
-    });
+        <!-- Personalización de tema -->
+        <div class="p-card" data-lock="true" id="card-theme">
+          <div class="lock-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
+            Solo Pro
+          </div>
+          <h3>Tema personalizado</h3>
+          <p>Elige el color primario de la interfaz para tu institución.</p>
+          <div class="color-row">
+            <div class="color-dot" data-color="#4e73df" style="background:#4e73df;"></div>
+            <div class="color-dot" data-color="#1cc88a" style="background:#1cc88a;"></div>
+            <div class="color-dot" data-color="#ef4444" style="background:#ef4444;"></div>
+            <div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+            <div class="color-dot" data-color="#f59e0b" style="background:#f59e0b;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    if (firstInvalid) {
-      firstInvalid.focus({ preventScroll: false });
-      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return; // Detener: hay errores
-    }
+    <!-- Modal de “Mejorar a Pro” -->
+    <div class="modal" id="upgradeModal" aria-hidden="true" role="dialog">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card" role="document" aria-modal="true">
+        <div class="upgrade-hero">
+          <h2>Mejora a <span class="hero-chip">Pro</span> para desbloquear funciones</h2>
+        </div>
+        <div class="hero-list">
+          <p>• Exportar CSV y archivo de reporte.</p>
+          <p>• Guardar y cargar grupos completos en segundos.</p>
+          <p>• Compartir enlaces con resultados reproducibles.</p>
+          <p>• Personalizar el color de la interfaz.</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" data-close>Más tarde</button>
+          <button class="btn-primary" id="btnGoPro">Mejorar a Pro</button>
+        </div>
+      </div>
+    </div>
+  </main>
 
-    // Construir datos
-    const data = { A: [], B: [], C: [] };
-    Array.from(container.children).forEach(item => {
-      const name = item.querySelector('strong').textContent;
-      const g = /Grupo (.)/.exec(name)[1];
+  <script>
+    (function() {
+      // ======================================================
+      // Referencias principales del DOM para no buscarlas siempre
+      // ======================================================
+      const container = document.getElementById('students-container'); // donde viven las tarjetas de alumnos
+      const countLabel = document.getElementById('student-count');     // contador de alumnos
+      const failureTitle = document.getElementById('failure-title');   // título de la tabla de reprobación
+      const table = document.getElementById('failure-table');          // tabla
+      const tableBody = table.querySelector('tbody');                  // cuerpo de la tabla
+      const chartContainer = document.getElementById('chart-container');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const ctx = document.getElementById('groupChart').getContext('2d'); // canvas gráfico
+      let chart; // instancia de Chart.js (la destruimos y recreamos para no duplicar)
 
-      const m = Number(item.querySelector('.math').value);
-      const p = Number(item.querySelector('.physics').value);
-      const c = Number(item.querySelector('.chemistry').value);
+      // ======================================================
+      // Utilidades varias
+      // ======================================================
+      function randNote() {
+        // Genera una nota aleatoria “realista” entre 5.0 y 10.0
+        return (Math.random() * 5 + 5).toFixed(1);
+      }
+      function updateCount() {
+        // Actualiza el número de alumnos visibles
+        countLabel.textContent = container.children.length;
+      }
 
-      const avg = +((m + p + c) / 3).toFixed(2);
-      data[g].push(avg);
+      // ======================================================
+      // Manejo visual de errores de validación (humano)
+      // ======================================================
+      function setError(input, message) {
+        input.classList.add('invalid');
+        input.setAttribute('aria-invalid', 'true');
+        input.title = message; // tip nativo al pasar el mouse
+        // mensaje debajo del input (creamos si no existe)
+        let hint = input.parentElement.querySelector('.error-hint');
+        // nos aseguramos de que el hint inmediato corresponda a este input
+        if (!hint || hint.previousElementSibling !== input) {
+          hint = document.createElement('small');
+          hint.className = 'error-hint';
+          input.insertAdjacentElement('afterend', hint);
+        }
+        hint.textContent = message;
+      }
+      function clearError(input) {
+        input.classList.remove('invalid');
+        input.removeAttribute('aria-invalid');
+        input.title = '';
+        const hint = input.parentElement.querySelector('.error-hint');
+        if (hint && hint.previousElementSibling === input) {
+          hint.remove();
+        }
+      }
 
-      const res = document.createElement('div');
-      res.className = 'result-item';
-      res.textContent = `${name}: Promedio ${avg} – ${avg >= 7 ? 'Aprobado' : 'Reprobado'}`;
-      document.getElementById(`group-summary-${g}`).appendChild(res);
-    });
+      // ======================================================
+      // Validación de un input numérico: retorna número o null si inválido
+      // ======================================================
+      function validateNumberInput(input) {
+        const raw = input.value.trim();
+        if (raw === '') {
+          setError(input, 'Campo requerido (0 a 10).');
+          return null;
+        }
+        // Aceptamos coma o punto para decimales
+        let val = Number(raw.replace(',', '.'));
+        if (!Number.isFinite(val)) {
+          setError(input, 'Ingresa un número válido.');
+          return null;
+        }
+        // Rango duro 0–10
+        if (val > 10) { setError(input, 'El valor debe estar entre 0 y 10.'); return null; }
+        if (val < 0)  { setError(input, 'El valor debe estar entre 0 y 10.'); return null; }
+        // Si todo bien, normalizamos y quitamos error
+        input.value = val.toFixed(1);
+        clearError(input);
+        return val;
+      }
 
-    // Tabla y promedio por grupo (evitar /0)
-    const labels = [];
-    const avgs = [];
-    Object.entries(data).forEach(([g, arr]) => {
-      const total = arr.length;
-      const failed = arr.filter(x => x < 7).length;
-      const rate = total === 0 ? '0.0' : ((failed / total) * 100).toFixed(1);
-      tableBody.innerHTML += `<tr><td>${g}</td><td>${total}</td><td>${failed}</td><td>${rate}%</td></tr>`;
+      // ======================================================
+      // Validación en tiempo real: límites duros + mensajes suaves
+      // ======================================================
+      container.addEventListener('input', (e) => {
+        const t = e.target;
+        if (!t.matches('.math, .physics, .chemistry')) return;
 
-      const groupAvg = total === 0 ? 0 : +(arr.reduce((a, b) => a + b, 0) / total).toFixed(2);
-      labels.push(`Grupo ${g}`);
-      avgs.push(groupAvg);
-    });
+        const raw = t.value.trim();
+        if (raw === '') {
+          // dejamos que termine de escribir; validamos al salir o al calcular
+          return;
+        }
+        let val = Number(raw.replace(',', '.'));
+        if (!Number.isFinite(val)) {
+          setError(t, 'Ingresa un número válido.');
+          return;
+        }
+        // recortamos en vivo al rango permitido
+        if (val > 10) val = 10;
+        if (val < 0)  val = 0;
+        t.value = String(val);
+        clearError(t);
+      });
 
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: { labels, datasets: [{ label: 'Promedio por Grupo', data: avgs }] },
-      options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-    });
+      // Al salir del campo, dejamos el número “bonito” (1 decimal) y validado
+      container.addEventListener('blur', (e) => {
+        const t = e.target;
+        if (!t.matches('.math, .physics, .chemistry')) return;
 
-    failureTitle.style.display = 'block';
-    table.style.display = 'table';
-    chartContainer.style.display = 'block';
-  });
+        const raw = t.value.trim();
+        if (raw === '') {
+          setError(t, 'Campo requerido (0 a 10).');
+          return;
+        }
+        let val = Number(raw.replace(',', '.'));
+        if (!Number.isFinite(val)) {
+          setError(t, 'Ingresa un número válido.');
+          return;
+        }
+        if (val > 10) val = 10;
+        if (val < 0)  val = 0;
+        t.value = val.toFixed(1);
+        clearError(t);
+      }, true);
 
-  // Precarga de datos
-  ['A','B','C'].forEach(g => {
-    for (let i = 1; i <= 10; i++) {
-      addStudentBlock(`Alumno ${g}${i}`, g, randNote(), randNote(), randNote());
-    }
-  });
-})();
-</script>
+      // ======================================================
+      // Crear tarjeta visual de alumno con 3 notas
+      // ======================================================
+      function addStudentBlock(name, group, m, p, c) {
+        const div = document.createElement('div');
+        div.className = 'student';
+        div.innerHTML = `
+          <div>
+            <strong>${name} (Grupo ${group})</strong>
+            <div class="fields">
+              <input type="number" class="math" value="${m}" min="0" max="10" step="0.1" placeholder="Matemáticas (0–10)">
+              <input type="number" class="physics" value="${p}" min="0" max="10" step="0.1" placeholder="Física (0–10)">
+              <input type="number" class="chemistry" value="${c}" min="0" max="10" step="0.1" placeholder="Química (0–10)">
+            </div>
+          </div>
+          <button type="button" class="btn-delete">Eliminar</button>
+        `;
+        // eliminar tarjeta y actualizar contador
+        div.querySelector('.btn-delete').addEventListener('click', () => {
+          div.remove(); updateCount();
+        });
+        container.appendChild(div);
+        updateCount();
+      }
+
+      // Botón “Agregar alumno”: crea una tarjeta con valores seguros por defecto
+      document.getElementById('add-student').addEventListener('click', () => {
+        addStudentBlock('Alumno Nuevo', 'A', '7.0', '7.0', '7.0');
+      });
+
+      // ======================================================
+      // Cálculo principal: valida todos los inputs y genera resultados
+      // ======================================================
+      calculateBtn.addEventListener('click', () => {
+        // Limpiamos vistas previas
+        ['A','B','C'].forEach(g => {
+          document.getElementById(`group-summary-${g}`).innerHTML = '';
+        });
+        tableBody.innerHTML = '';
+
+        // Validamos TODOS los inputs antes de calcular
+        const inputs = container.querySelectorAll('.math, .physics, .chemistry');
+        let firstInvalid = null;
+        inputs.forEach(inp => {
+          const ok = validateNumberInput(inp);
+          if (ok === null && !firstInvalid) firstInvalid = inp;
+        });
+        if (firstInvalid) {
+          // si algo falla, enfocamos y no calculamos
+          firstInvalid.focus({ preventScroll: false });
+          firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        // Construimos datos por grupo
+        const data = { A: [], B: [], C: [] };
+        Array.from(container.children).forEach(item => {
+          const name = item.querySelector('strong').textContent;
+          const g = /Grupo (.)/.exec(name)[1];
+          const m = Number(item.querySelector('.math').value);
+          const p = Number(item.querySelector('.physics').value);
+          const c = Number(item.querySelector('.chemistry').value);
+          const avg = +((m + p + c) / 3).toFixed(2); // promedio con 2 decimales
+          data[g].push(avg);
+
+          // Añadimos el renglón al resumen por grupo
+          const res = document.createElement('div');
+          res.className = 'result-item';
+          res.textContent = `${name}: Promedio ${avg} – ${avg >= 7 ? 'Aprobado' : 'Reprobado'}`;
+          document.getElementById(`group-summary-${g}`).appendChild(res);
+        });
+
+        // Construimos tabla de reprobación + promedios por grupo
+        const labels = [];
+        const avgs = [];
+        Object.entries(data).forEach(([g, arr]) => {
+          const total = arr.length;
+          const failed = arr.filter(x => x < 7).length;
+          const rate = total === 0 ? '0.0' : ((failed / total) * 100).toFixed(1);
+          tableBody.innerHTML += `<tr><td>${g}</td><td>${total}</td><td>${failed}</td><td>${rate}%</td></tr>`;
+          const groupAvg = total === 0 ? 0 : +(arr.reduce((a, b) => a + b, 0) / total).toFixed(2);
+          labels.push(`Grupo ${g}`);
+          avgs.push(groupAvg);
+        });
+
+        // Gráfica (destruir previa si existe para no duplicar)
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Promedio por Grupo', data: avgs }] },
+          options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+        });
+
+        // Mostrar resultados
+        failureTitle.style.display = 'block';
+        table.style.display = 'table';
+        chartContainer.style.display = 'block';
+      });
+
+      // ======================================================
+      // Precarga de datos: 10 alumnos por grupo A/B/C
+      // ======================================================
+      ['A','B','C'].forEach(g => {
+        for (let i = 1; i <= 10; i++) {
+          addStudentBlock(`Alumno ${g}${i}`, g, randNote(), randNote(), randNote());
+        }
+      });
+
+      // ======================================================
+      // PREMIUM: Estado, bloqueo/desbloqueo y acciones
+      // ======================================================
+      let isPro = false; // estado simulado del plan Pro
+      const proSwitch = document.getElementById('proSwitch');
+      const premiumSection = document.getElementById('premium');
+      const upgradeModal = document.getElementById('upgradeModal');
+
+      function setLockedUI(locked) {
+        // pinta/oculta “Solo Pro” y bloquea clicks si no eres Pro
+        premiumSection.querySelectorAll('.p-card').forEach(card => {
+          const wantsLock = card.dataset.lock === 'true';
+          card.classList.toggle('locked', locked && wantsLock);
+          const badge = card.querySelector('.lock-badge');
+          if (badge) badge.style.display = (locked && wantsLock) ? 'flex' : 'none';
+        });
+        // si está bloqueado, los botones abren el modal
+        ['btnExportCSV','btnExportPDF','btnSaveTemplate','btnLoadTemplate','btnShare']
+          .forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.onclick = locked ? openUpgrade : null;
+          });
+        // puntos de color bloqueados si no eres Pro
+        premiumSection.querySelectorAll('.color-dot').forEach(dot => {
+          dot.onclick = locked ? openUpgrade : null;
+        });
+      }
+
+      function openUpgrade(){
+        upgradeModal.classList.add('show');
+        upgradeModal.setAttribute('aria-hidden','false');
+      }
+      function closeUpgrade(){
+        upgradeModal.classList.remove('show');
+        upgradeModal.setAttribute('aria-hidden','true');
+      }
+      upgradeModal.addEventListener('click', (e)=>{
+        if (e.target.matches('[data-close], .modal-backdrop')) closeUpgrade();
+      });
+      document.getElementById('btnGoPro').addEventListener('click', ()=>{
+        // Simulamos “compra”: activamos Pro
+        isPro = true;
+        proSwitch.checked = true;
+        setLockedUI(false);
+        closeUpgrade();
+      });
+
+      // Conmutador Pro (demo)
+      proSwitch.addEventListener('change', ()=>{
+        isPro = proSwitch.checked;
+        setLockedUI(!isPro);
+      });
+      setLockedUI(!isPro); // iniciar bloqueado
+
+      // ======================================================
+      // Funciones reales de Premium
+      // ======================================================
+      function exportCSV(){
+        // toma la tabla de reprobación actual y la convierte a CSV
+        const rows = [['Grupo','Total','Reprobados','% Reprobación']];
+        tableBody.querySelectorAll('tr').forEach(tr=>{
+          const cells = Array.from(tr.children).map(td=>td.textContent);
+          rows.push(cells);
+        });
+        const csv = rows.map(r=>r.join(',')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `reprobacion_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      function exportPDFMock(){
+        // mock simple de “reporte” en txt (puedes integrarlo con html2pdf.js luego)
+        let text = 'Índice de Reprobación\\n\\n';
+        table.querySelectorAll('tr').forEach((tr,i)=>{
+          const cells = Array.from(tr.children).map(td=>td.textContent);
+          text += cells.join('  |  ') + '\\n';
+        });
+        const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `reporte_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      function serializeStudents(){
+        // serializa alumnos actuales (título, grupo, y 3 calificaciones)
+        const arr = [];
+        Array.from(container.children).forEach(item=>{
+          const title = item.querySelector('strong').textContent; // “Alumno A1 (Grupo A)”
+          const m = item.querySelector('.math').value;
+          const p = item.querySelector('.physics').value;
+          const c = item.querySelector('.chemistry').value;
+          const g = /Grupo (.)/.exec(title)?.[1] || 'A';
+          arr.push({title, g, m, p, c});
+        });
+        return arr;
+      }
+      function deserializeStudents(arr){
+        // reconstruye alumnos desde un array serializado
+        container.innerHTML = '';
+        arr.forEach(obj=>{
+          const div = document.createElement('div');
+          div.className='student';
+          div.innerHTML = `
+            <div>
+              <strong>${obj.title}</strong>
+              <div class="fields">
+                <input type="number" class="math" value="${obj.m}" min="0" max="10" step="0.1" placeholder="Matemáticas (0–10)">
+                <input type="number" class="physics" value="${obj.p}" min="0" max="10" step="0.1" placeholder="Física (0–10)">
+                <input type="number" class="chemistry" value="${obj.c}" min="0" max="10" step="0.1" placeholder="Química (0–10)">
+              </div>
+            </div>
+            <button type="button" class="btn-delete">Eliminar</button>
+          `;
+          div.querySelector('.btn-delete').addEventListener('click', ()=>{ div.remove(); updateCount(); });
+          container.appendChild(div);
+        });
+        updateCount();
+      }
+      function saveTemplate(){
+        const data = serializeStudents();
+        localStorage.setItem('plantilla_estudiantes', JSON.stringify(data));
+        alert('Plantilla guardada localmente.');
+      }
+      function loadTemplate(){
+        const raw = localStorage.getItem('plantilla_estudiantes');
+        if(!raw){ alert('No hay plantilla guardada.'); return; }
+        const data = JSON.parse(raw);
+        deserializeStudents(data);
+        alert('Plantilla cargada.');
+      }
+      function shareLink(){
+        // comparte un enlace auto-contenido con el estado actual
+        const data = serializeStudents();
+        const payload = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
+        const url = `${location.origin}${location.pathname}?s=${payload}`;
+        navigator.clipboard?.writeText(url);
+        alert('Enlace copiado al portapapeles.');
+      }
+      (function tryLoadFromQuery(){
+        // si llega un ?s= en la URL, reconstruimos alumnos al abrir
+        const params = new URLSearchParams(location.search);
+        const s = params.get('s');
+        if(!s) return;
+        try{
+          const json = decodeURIComponent(escape(atob(decodeURIComponent(s))));
+          const data = JSON.parse(json);
+          deserializeStudents(data);
+        }catch(e){/* ignoramos errores de parseo */}
+      })();
+
+      // Cambiar color del tema cuando eres Pro
+      document.querySelectorAll('.color-dot').forEach(dot=>{
+        dot.addEventListener('click', ()=>{
+          if(!isPro){ openUpgrade(); return; }
+          const color = dot.dataset.color;
+          document.documentElement.style.setProperty('--primary', color);
+        });
+      });
+
+      // Enlazar acciones premium (si no eres Pro, abre el modal)
+      document.getElementById('btnExportCSV').addEventListener('click', ()=>{ if(!isPro) return openUpgrade(); exportCSV(); });
+      document.getElementById('btnExportPDF').addEventListener('click', ()=>{ if(!isPro) return openUpgrade(); exportPDFMock(); });
+      document.getElementById('btnSaveTemplate').addEventListener('click', ()=>{ if(!isPro) return openUpgrade(); saveTemplate(); });
+      document.getElementById('btnLoadTemplate').addEventListener('click', ()=>{ if(!isPro) return openUpgrade(); loadTemplate(); });
+      document.getElementById('btnShare').addEventListener('click', ()=>{ if(!isPro) return openUpgrade(); shareLink(); });
+    })();
+  </script>
 </body>
 </html>
+
 
